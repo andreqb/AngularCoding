@@ -8,13 +8,19 @@ angular.module('angualrjsApp', [
 ])
   .config(function ($routeProvider) {
     $routeProvider
-      .when('/main', {
+     /* .when('/main', {
         templateUrl: 'views/main.html',
         controller: 'MainCtrl'
-      })
-          .when('/', {
-        templateUrl: 'views/project-goals_01.htm',
+      })*/
+       
+       .when('/', {
+        templateUrl: 'views/projectlist.html',
         controller: 'ProjectCtrl'
+      })
+
+        .when('/projectDetail/:id', {
+        templateUrl: 'views/project-goals_01.htm',
+        controller: 'ProjectDetailCtrl'
       })
       .otherwise({
         redirectTo: '/'
