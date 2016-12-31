@@ -1,60 +1,99 @@
-// Karma configuration
-// http://karma-runner.github.io/0.10/config/configuration-file.html
-
 module.exports = function(config) {
-  config.set({
-    // base path, that will be used to resolve files and exclude
-    basePath: '',
 
-    // testing framework to use (jasmine/mocha/qunit/...)
+  var appBase    = 'app/';      // transpiled app JS and map files
+  var appSrcBase = 'app/';      // app source TS files
+  var appAssets  = 'base/app/'; // component assets fetched by Angular's compiler
+
+  // Testing helpers (optional) are conventionally in a folder called `testing`
+  var testingBase    = 'testing/'; // transpiled test JS and map files
+  var testingSrcBase = 'testing/'; // test source TS files
+
+  config.set({
+    basePath: '',
     frameworks: ['jasmine'],
 
-    // list of files / patterns to load in the browser
-    files: [
-      'app/bower_components/angular/angular.js',
-      'app/bower_components/angular-mocks/angular-mocks.js',
-      'app/bower_components/angular-resource/angular-resource.js',
-      'app/bower_components/angular-cookies/angular-cookies.js',
-      'app/bower_components/angular-sanitize/angular-sanitize.js',
-      'app/bower_components/angular-route/angular-route.js',
-      'app/scripts/*.js',
-      'app/scripts/**/*.js',
-      'test/mock/**/*.js',
-      'test/spec/**/*.js'
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-chrome-launcher'),
+      require('karma-jasmine-html-reporter')
     ],
 
-    // list of files / patterns to exclude
+    client: {
+      builtPaths: [appBase, testingBase], // add more spec base paths as needed
+      clearContext: false // leave Jasmine Spec Runner output visible in browser
+    },
+
+    customLaunchers: {
+      // From the CLI. Not used here but interesting
+      // chrome setup for travis CI using chromium
+      Chrome_travis_ci: {
+        base: 'Chrome',
+        flags: ['--no-sandbox']
+      }
+    },
+
+    files: [
+      // System.js for module loading
+      'node_modules/systemjs/dist/system.src.js',
+
+      // Polyfills
+      'node_modules/core-js/client/shim.js',
+      'node_modules/reflect-metadata/Reflect.js',
+
+      // zone.js
+      'node_modules/zone.js/dist/zone.js',
+      'node_modules/zone.js/dist/long-stack-trace-zone.js',
+      'node_modules/zone.js/dist/proxy.js',
+      'node_modules/zone.js/dist/sync-test.js',
+      'node_modules/zone.js/dist/jasmine-patch.js',
+      'node_modules/zone.js/dist/async-test.js',
+      'node_modules/zone.js/dist/fake-async-test.js',
+
+      // RxJs
+      { pattern: 'node_modules/rxjs/**/*.js', included: false, watched: false },
+      { pattern: 'node_modules/rxjs/**/*.js.map', included: false, watched: false },
+
+      // Paths loaded via module imports:
+      // Angular itself
+      { pattern: 'node_modules/@angular/**/*.js', included: false, watched: false },
+      { pattern: 'node_modules/@angular/**/*.js.map', included: false, watched: false },
+
+      { pattern: 'systemjs.config.js', included: false, watched: false },
+      { pattern: 'systemjs.config.extras.js', included: false, watched: false },
+      'karma-test-shim.js', // optionally extend SystemJS mapping e.g., with barrels
+
+      // transpiled application & spec code paths loaded via module imports
+      { pattern: appBase + '**/*.js', included: false, watched: true },
+      { pattern: testingBase + '**/*.js', included: false, watched: true },
+
+
+      // Asset (HTML & CSS) paths loaded via Angular's component compiler
+      // (these paths need to be rewritten, see proxies section)
+      { pattern: appBase + '**/*.html', included: false, watched: true },
+      { pattern: appBase + '**/*.css', included: false, watched: true },
+
+      // Paths for debugging with source maps in dev tools
+      { pattern: appSrcBase + '**/*.ts', included: false, watched: false },
+      { pattern: appBase + '**/*.js.map', included: false, watched: false },
+      { pattern: testingSrcBase + '**/*.ts', included: false, watched: false },
+      { pattern: testingBase + '**/*.js.map', included: false, watched: false}
+    ],
+
+    // Proxied base paths for loading assets
+    proxies: {
+      // required for component assets fetched by Angular's compiler
+      "/app/": appAssets
+    },
+
     exclude: [],
+    preprocessors: {},
+    reporters: ['progress', 'kjhtml'],
 
-    // web server port
-    port: 8080,
-
-    // level of logging
-    // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
+    port: 9876,
+    colors: true,
     logLevel: config.LOG_INFO,
-
-
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: false,
-
-
-    // Start these browsers, currently available:
-    // - Chrome
-    // - ChromeCanary
-    // - Firefox
-    // - Opera
-    // - Safari (only Mac)
-    // - PhantomJS
-    // - IE (only Windows)
+    autoWatch: true,
     browsers: ['Chrome'],
-
-
-    // Continuous Integration mode
-    // if true, it capture browsers, run tests and exit
-    singleRun: false,
-	plugins: [
-				'karma-chrome-launcher',
-				'karma-jasmine'
-	]
-  });
-};
+    singleRun: false
+  })
+}
